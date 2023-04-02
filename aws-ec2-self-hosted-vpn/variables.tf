@@ -19,3 +19,8 @@ variable "instance_type" {
   description = "The instance type to use for the VPN server"
   default     = "t4g.nano"
 }
+
+variable "tailscale_authkey" {
+  type        = string
+  description = "The tailscale authkey to use for the VPN server"
+}
