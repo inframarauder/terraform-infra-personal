@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eux
+
 # update packages
 sudo apt-get update -y
 
@@ -15,4 +17,4 @@ echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale
 sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
 
 # Enable Tailscale as exit node
-sudo tailscale up --authkey "${tailscale_authkey}" --hostname $HOSTNAME --advertise-exit-node 
+sudo tailscale up --authkey "${tailscale_authkey}" --hostname "${hostname}" --advertise-exit-node 
