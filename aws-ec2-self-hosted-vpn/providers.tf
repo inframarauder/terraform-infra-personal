@@ -6,6 +6,13 @@ terraform {
       version = "~> 4.0"
     }
   }
+  backend "s3" {
+    bucket         = "terraform-remote-state-20230329190948520800000001"
+    key            = "aws-ec2-self-hosted-vpn/terraform.tfstate"
+    dynamodb_table = "terraform-remote-state-lock-table"
+    region         = "ap-south-1"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
