@@ -29,27 +29,14 @@ resource "aws_security_group_rule" "ssh" {
   security_group_id = aws_security_group.vpn.id
 }
 
-# create cloud init script to setup tailscale exit node
-data "template_file" "script" {
-  template = file("${path.module}/files/user-data.tpl")
+resource "aws_security_group_rule" "all_egress" {
+  type        = "egress"
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
+  cidr_blocks = ["0.0.0.0/0"]
 
-  vars = {
-    tailscale_authkey = "${var.tailscale_authkey}"
-  }
 }
-
-data "template_cloudinit_config" "user_data" {
-  gzip          = true
-  base64_encode = true
-
-  # Main cloud-config configuration file.
-  part {
-    filename     = "user-data.sh"
-    content_type = "text/cloud-config"
-    content      = data.template_file.script.rendered
-  }
-}
-
 
 # create ec2 instance 
 resource "aws_instance" "vpn" {
@@ -58,7 +45,10 @@ resource "aws_instance" "vpn" {
   key_name                    = local.ssh_key_pair_name
   vpc_security_group_ids      = [aws_security_group.vpn.id]
   associate_public_ip_address = true
-  user_data_base64            = data.template_cloudinit_config.user_data.rendered
+  user_data_base64 = base64encode("${templatefile("${path.module}/files/user-data.sh", {
+    hostname          = local.vpn_instance_name
+    tailscale_authkey = var.tailscale_authkey
+  })}")
 
   tags = {
     Name = local.vpn_instance_name

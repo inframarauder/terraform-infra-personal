@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# Install Tailscale on Ubuntu 22.04
+# update packages
 sudo apt-get update -y
+
+# set hostname
+sudo hostnamectl set-hostname "${hostname}"
+
+# Install Tailscale on Ubuntu 22.04
 curl -fsSL https://tailscale.com/install.sh | sh
 
 # Enable IP forwarding
