@@ -1,13 +1,3 @@
-# fetch ubuntu LTS image
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-arm64-server-*"]
-  }
-}
-
 # fetch default VPC in region
 data "aws_vpc" "default" {
   default = true
@@ -40,14 +30,14 @@ resource "aws_security_group_rule" "all_egress" {
 
 # create ec2 instance 
 resource "aws_instance" "vpn" {
-  ami                         = data.aws_ami.ubuntu.id
+  ami                         = var.ami_id
   instance_type               = var.instance_type
   key_name                    = local.ssh_key_pair_name
   vpc_security_group_ids      = [aws_security_group.vpn.id]
   associate_public_ip_address = true
   user_data_base64 = base64encode("${templatefile("${path.module}/files/user-data.sh", {
     hostname          = local.vpn_instance_name
-    tailscale_authkey = var.tailscale_authkey
+    tailscale_authkey = var.tailscale_exit_node_authkey
   })}")
 
   tags = {
