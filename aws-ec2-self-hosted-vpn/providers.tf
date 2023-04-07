@@ -16,5 +16,11 @@ terraform {
 }
 
 provider "aws" {
-  region = var.region
+  region = var.vpn_region
+}
+
+# provider alias for aws secrets manager
+provider "aws" {
+  alias  = "secretsmanager"
+  region = "ap-south-1"
 }
