@@ -7,7 +7,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket         = "terraform-remote-state-20230329190948520800000001"
+    bucket         = "terraform-remote-state-subhasis020299"
     key            = "tailscale/terraform.tfstate"
     dynamodb_table = "terraform-remote-state-lock-table"
     region         = "ap-south-1"
