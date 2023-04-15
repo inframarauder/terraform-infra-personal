@@ -9,7 +9,7 @@ terraform {
   backend "s3" {
     bucket         = "terraform-remote-state-subhasis020299"
     key            = "tailscale/terraform.tfstate"
-    dynamodb_table = "terraform-remote-state-lock-table"
+    dynamodb_table = "terraform-remote-state-subhasis020299-lock-table"
     region         = "ap-south-1"
     encrypt        = true
   }
