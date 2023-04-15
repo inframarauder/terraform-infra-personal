@@ -15,4 +15,6 @@ terraform {
   }
 }
 
-provider "tailscale" {}
+provider "tailscale" {
+  tailnet = "subhasisdas125@gmail.com"
+}
