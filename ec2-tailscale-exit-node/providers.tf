@@ -6,6 +6,13 @@ terraform {
       version = "~> 4.0"
     }
   }
+
+  cloud {
+    organization = "subhasis020299"
+    workspaces {
+      name = "terraform-infra-personal"
+    }
+  }
 }
 
 provider "aws" {
