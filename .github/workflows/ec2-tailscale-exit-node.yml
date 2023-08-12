@@ -2,12 +2,6 @@
 name: "Terraform Cloud Runs"
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "ec2-tailscale-exit-node/*"
-      - ".github/workflows/ec2-tailscale-exit-node.yml"
   pull_request:
     branches:
       - main
@@ -16,8 +10,10 @@ on:
       - ".github/workflows/ec2-tailscale-exit-node.yml"
 
 env:
-  TF_ORGANIZATION: "subhasis020299"
+  TF_CLOUD_ORGANIZATION: "subhasis020299"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  TF_WORKSPACE: "ec2-tailscale-exit-node"
+  CONFIG_DIRECTORY: "./ec2-tailscale-exit-node"
 
 # add a tf-plan job for every terraform state in the repo
 jobs:
@@ -27,9 +23,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    env:
-      TF_WORKSPACE: "ec2-tailscale-exit-node"
-      CONFIG_DIRECTORY: "ec2-tailscale-exit-node"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,6 +39,7 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
         id: plan-run
         with:
+          organization: ${{ env.TF_ORGANIZATION }}
           workspace: ${{ env.TF_WORKSPACE }}
           configuration_version: ${{ steps.config-upload.outputs.configuration_version_id }}
           plan_only: true
