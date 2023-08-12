@@ -1,11 +1,15 @@
-# fetch ubuntu LTS image
+# fetch ubuntu 22.04 LTS image
 data "aws_ami" "ubuntu" {
   most_recent = true
-  owners      = ["099720109477"] # Canonical
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-arm64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  owners = ["099720109477"]
 }
 
 # fetch default VPC in region
@@ -45,7 +49,7 @@ resource "aws_instance" "vpn" {
   key_name                    = local.ssh_key_pair_name
   vpc_security_group_ids      = [aws_security_group.vpn.id]
   associate_public_ip_address = true
-  user_data_base64 = base64encode("${templatefile("${path.module}/files/user-data.sh", {
+  user_data_base64 = base64encode("${templatefile("${path.module}/user-data/setup.sh", {
     hostname          = local.vpn_instance_name
     tailscale_authkey = var.tailscale_authkey
   })}")
