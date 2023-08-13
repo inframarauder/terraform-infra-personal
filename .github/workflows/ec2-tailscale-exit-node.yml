@@ -76,7 +76,7 @@ jobs:
             });
   apply:
     name: "Terraform Apply"
-    if: contains(github.event.comment.html_url, '/pull/')  && contains(github.event.comment.body, 'apply')
+    if: ${{ github.event.issue.pull_request }}  && contains(github.event.comment.body, 'apply')
     needs: plan
     runs-on: ubuntu-latest
     permissions:
