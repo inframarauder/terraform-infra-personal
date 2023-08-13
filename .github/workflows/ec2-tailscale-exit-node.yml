@@ -1,7 +1,9 @@
-# tf cloud plan flow for the ec2-tailscale-exit-node terraform state
-name: "Terraform Cloud Plan"
+# tf cloud workflow for the ec2-tailscale-exit-node terraform state
+name: "Terraform Cloud"
 
 on:
+  issue_comment:
+    types: [created, edited]
   pull_request:
     branches:
       - main
@@ -13,7 +15,6 @@ env:
   TF_WORKSPACE: "ec2-tailscale-exit-node"
   CONFIG_DIRECTORY: "./ec2-tailscale-exit-node"
 
-# add a tf-plan job for every terraform state in the repo
 jobs:
   plan:
     name: "Terraform Plan"
@@ -73,3 +74,37 @@ jobs:
               repo: context.repo.repo,
               body: output
             });
+  apply:
+    name: "Terraform Apply"
+    if: contains(github.event.comment.html_url, '/pull/')  && contains(github.event.comment.body, 'apply')
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Upload Configuration
+        if: success()
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: apply-upload
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
+
+      - name: Create Apply Run
+        if: success()
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: apply-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
+
+      - name: Apply
+        if: success() && fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        id: apply
+        with:
+          run: ${{ steps.apply-run.outputs.run_id }}
+          comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
