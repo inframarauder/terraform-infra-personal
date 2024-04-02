@@ -8,7 +8,7 @@ terraform {
   }
 
   cloud {
-    organization = "subhasis020299"
+    organization = "terraform-infra-personal-org"
     workspaces {
       name = "ec2-tailscale-exit-node"
     }
