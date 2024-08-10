@@ -33,3 +33,6 @@ override.tf.json
 
 # lock files
 .terraform.lock.hcl
+
+# infracost
+.infracost/*
