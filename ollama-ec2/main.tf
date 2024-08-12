@@ -12,11 +12,6 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"]
 }
 
-# fetch my own ip
-data "http" "myip" {
-  url = "https://ipv4.icanhazip.com"
-}
-
 # fetch vpc
 data "aws_vpc" "default" {
   default = true
@@ -56,6 +51,11 @@ resource "aws_instance" "ollama" {
   key_name                    = local.ssh_key_pair_name
   vpc_security_group_ids      = [aws_security_group.ollama.id]
   associate_public_ip_address = true
+
+  user_data_base64 = base64encode("${templatefile("${path.module}/user-data/setup.sh", {
+    hostname     = "ollama"
+    ssh_username = "ubuntu"
+  })}")
 
   tags = {
     Name = "ollama"
