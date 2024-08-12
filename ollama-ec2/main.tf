@@ -48,6 +48,7 @@ resource "aws_security_group_rule" "ollama_egress" {
 resource "aws_instance" "ollama" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
+  availability_zone           = "${var.region}a"
   key_name                    = local.ssh_key_pair_name
   vpc_security_group_ids      = [aws_security_group.ollama.id]
   associate_public_ip_address = true
@@ -60,4 +61,16 @@ resource "aws_instance" "ollama" {
   tags = {
     Name = "ollama"
   }
+}
+
+# adding a volume
+resource "aws_ebs_volume" "ollama" {
+  availability_zone = "${var.region}a"
+  size              = var.vol_size
+}
+
+resource "aws_volume_attachment" "ollama" {
+  device_name = "/dev/sdh"
+  volume_id   = aws_ebs_volume.ollama.id
+  instance_id = aws_instance.ollama.id
 }
