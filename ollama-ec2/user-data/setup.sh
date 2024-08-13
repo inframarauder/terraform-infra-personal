@@ -28,3 +28,9 @@ docker pull ollama/ollama
 
 # run ollama image (cpu-only)
 docker run -d -v ollama:/root/.ollama -p 80:11434 --name ollama ollama/ollama
+
+# pre-load all the required models on ollama
+for model in "${pre_loaded_models}";
+do
+    docker exect -t ollama ollama run "${model}"
+done

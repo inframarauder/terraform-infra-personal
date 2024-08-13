@@ -53,9 +53,14 @@ resource "aws_instance" "ollama" {
   vpc_security_group_ids      = [aws_security_group.ollama.id]
   associate_public_ip_address = true
 
+  root_block_device {
+    volume_size = var.vol_size
+  }
+
   user_data_base64 = base64encode("${templatefile("${path.module}/user-data/setup.sh", {
-    hostname     = "ollama"
-    ssh_username = "ubuntu"
+    hostname          = "ollama"
+    ssh_username      = "ubuntu"
+    pre_loaded_models = var.pre_loaded_models
   })}")
 
   tags = {
@@ -63,14 +68,3 @@ resource "aws_instance" "ollama" {
   }
 }
 
-# adding a volume
-resource "aws_ebs_volume" "ollama" {
-  availability_zone = "${var.region}a"
-  size              = var.vol_size
-}
-
-resource "aws_volume_attachment" "ollama" {
-  device_name = "/dev/sdh"
-  volume_id   = aws_ebs_volume.ollama.id
-  instance_id = aws_instance.ollama.id
-}
