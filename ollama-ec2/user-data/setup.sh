@@ -30,7 +30,10 @@ docker pull ollama/ollama
 docker run -d -v ollama:/root/.ollama -p 80:11434 --name ollama ollama/ollama
 
 # pre-load all the required models on ollama
-for model in "${pre_loaded_models}";
+for i in ${pre_loaded_models};
 do
-    docker exect -t ollama ollama run "${model}"
+    docker exec -t ollama ollama pull "$i"
 done
+
+# list all loaded models
+docker exec -t ollama ollama list
