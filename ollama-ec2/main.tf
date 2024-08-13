@@ -45,6 +45,7 @@ resource "aws_security_group_rule" "ollama_egress" {
   security_group_id = aws_security_group.ollama.id
 }
 
+# EC2 instance
 resource "aws_instance" "ollama" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
@@ -60,7 +61,7 @@ resource "aws_instance" "ollama" {
   user_data_base64 = base64encode("${templatefile("${path.module}/user-data/setup.sh", {
     hostname          = "ollama"
     ssh_username      = "ubuntu"
-    pre_loaded_models = var.pre_loaded_models
+    pre_loaded_models = join(" ", var.pre_loaded_models)
   })}")
 
   tags = {
