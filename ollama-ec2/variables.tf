@@ -12,3 +12,8 @@ variable "vol_size" {
   type        = number
   description = "Size of the EBS volume in GiB"
 }
+
+variable "pre_loaded_models" {
+  type        = list(string)
+  description = "List of models we want to pull by default during server creation"
+}
