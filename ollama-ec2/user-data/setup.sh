@@ -27,7 +27,7 @@ docker info
 docker pull ollama/ollama
 
 # run ollama image (cpu-only)
-docker run -d -v ollama:/root/.ollama -p 80:11434 --name ollama ollama/ollama
+docker run -d -v ollama:/root/.ollama -p 1134:11434 --name ollama ollama/ollama
 
 # pre-load all the required models on ollama
 for i in ${pre_loaded_models};
@@ -37,3 +37,18 @@ done
 
 # list all loaded models
 docker exec -t ollama ollama list
+
+# install nginx 
+sudo apt-get install nginx -y
+
+# SSL using certbot
+sudo snap install --classic certbot
+certbot certonly -n -m subhasisdas125@gmail.com --agree-tos --nginx -d ${ollama_domain}
+
+# put nginx conf in required location
+git clone https://gist.github.com/4f8c8b166137b3719621a84c4de67666.git nginx-gist
+mv nginx-gist/ollama-nginx.conf /etc/nginx/sites-available/ollama-nginx.conf
+sudo ln -s /etc/nginx/sites-available/ollama-nginx.conf /etc/nginx/sites-enabled/
+ 
+# restart nginx
+sudo systemctl reload nginx
