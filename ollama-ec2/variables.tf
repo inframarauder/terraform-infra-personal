@@ -17,3 +17,18 @@ variable "pre_loaded_models" {
   type        = list(string)
   description = "List of models we want to pull by default during server creation"
 }
+
+variable "cloudflare_api_token" {
+  type        = string
+  description = "API Token for managing CloudFlare Resources"
+}
+
+variable "cloudflare_zone_name" {
+  type        = string
+  description = "Name of the CloudFlare Zone to manage resources in"
+}
+
+variable "ollama_domain" {
+  type        = string
+  description = "Ollama domain name"
+}

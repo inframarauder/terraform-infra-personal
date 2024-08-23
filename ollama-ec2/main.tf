@@ -62,6 +62,7 @@ resource "aws_instance" "ollama" {
     hostname          = "ollama"
     ssh_username      = "ubuntu"
     pre_loaded_models = join(" ", var.pre_loaded_models)
+    ollama_domain     = var.ollama_domain
   })}")
 
   tags = {
@@ -69,3 +70,15 @@ resource "aws_instance" "ollama" {
   }
 }
 
+# create cloudflare DNS record - 
+data "cloudflare_zone" "ollama" {
+  name = var.cloudflare_zone_name
+}
+
+resource "cloudflare_record" "ollama" {
+  zone_id = data.cloudflare_zone.ollama.zone_id
+
+  type  = "A"
+  name  = "ollama"
+  value = aws_instance.ollama.public_ip
+}
