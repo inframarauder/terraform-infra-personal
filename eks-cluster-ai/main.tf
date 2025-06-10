@@ -54,6 +54,15 @@ module "eks" {
   }
 }
 
+# update kubeconfig for the EKS cluster
+resource "null_resource" "update_kubeconfig" {
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.eks_cluster_name} --region ${var.aws_region}"
+  }
+
+  depends_on = [module.eks]
+}
+
 # install the AWS Load Balancer Controller
 module "alb_irsa" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
