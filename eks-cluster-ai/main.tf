@@ -14,100 +14,44 @@ data "aws_subnets" "subnets" {
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
 
-  cluster_name    = var.eks_cluster_name
-  cluster_version = var.eks_cluster_version
-  subnet_ids      = data.aws_subnets.subnets.ids
-  vpc_id          = data.aws_vpc.default.id
+  cluster_name                             = var.eks_cluster_name
+  cluster_version                          = var.eks_cluster_version
+  subnet_ids                               = data.aws_subnets.subnets.ids
+  vpc_id                                   = data.aws_vpc.default.id
+  cluster_endpoint_public_access           = true
+  enable_irsa                              = true
+  enable_cluster_creator_admin_permissions = true
 
-  enable_irsa = true
-
-  eks_managed_node_groups = {
-    cpu_nodes = {
-      min_size       = 1
-      desired_size   = 2
-      instance_types = ["t3.medium"]
-      labels = {
-        "workload-type" = "cpu"
-      }
-      taints = [{
-        key    = "workload-type"
-        value  = "cpu"
-        effect = "NO_SCHEDULE"
-      }]
-      ami_type = "AL2_x86_64"
-    }
-
-    gpu_nodes = {
-      min_size       = 0
-      desired_size   = 1
-      instance_types = ["g5.xlarge"]
-      labels = {
-        "workload-type" = "gpu"
-      }
-      taints = [{
-        key    = "workload-type"
-        value  = "gpu"
-        effect = "NO_SCHEDULE"
-      }]
-      ami_type = "AL2_x86_64_GPU"
-    }
+  # EKS Auto Mode - built in node pools
+  cluster_compute_config = {
+    enabled    = true
+    node_pools = ["general-purpose"]
   }
 }
 
-# update kubeconfig for the EKS cluster
-resource "null_resource" "update_kubeconfig" {
+# Custom node-pools
+resource "null_resource" "kubectl_apply" {
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${var.eks_cluster_name} --region ${var.aws_region}"
+    # update kubeconfig and apply node class and node pool manifests
+    interpreter = ["bash", "-c"]
+    command     = <<EOT
+      aws eks update-kubeconfig --name ${var.eks_cluster_name} --region ${var.aws_region}
+      echo "${local.node_class_yml}" | kubectl apply -f -
+      echo "${local.node_pool_yml}" | kubectl apply -f -
+    EOT
   }
 
   depends_on = [module.eks]
 }
 
-# install the AWS Load Balancer Controller
-module "alb_irsa" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+# EKS Access Policy Association
+# This associates the EKS Auto Node Policy with the node IAM role
+resource "aws_eks_access_policy_association" "this" {
+  cluster_name  = var.eks_cluster_name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAutoNodePolicy"
+  principal_arn = module.eks.node_iam_role_arn
 
-  role_name                              = "alb-ingress-controller"
-  attach_load_balancer_controller_policy = true
-
-  oidc_providers = {
-    main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
-    }
+  access_scope {
+    type = "cluster"
   }
-}
-resource "helm_release" "aws_lb_controller" {
-  name             = "aws-load-balancer-controller"
-  repository       = "https://aws.github.io/eks-charts"
-  chart            = "aws-load-balancer-controller"
-  namespace        = "kube-system"
-  create_namespace = false
-
-  set {
-    name  = "clusterName"
-    value = var.eks_cluster_name
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller"
-  }
-
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "region"
-    value = var.aws_region
-  }
-
-  set {
-    name  = "vpcId"
-    value = data.aws_vpc.default.id
-  }
-
-  depends_on = [module.alb_irsa]
 }
