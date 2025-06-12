@@ -10,7 +10,7 @@ data "aws_subnets" "subnets" {
   }
 }
 
-# Create an EKS cluster with two node groups: one for CPU workloads and one for GPU workloads
+# Create an EKS cluster in auto mode with built-in node pools
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
 
@@ -21,27 +21,13 @@ module "eks" {
   cluster_endpoint_public_access           = true
   enable_irsa                              = true
   enable_cluster_creator_admin_permissions = true
+  node_iam_role_name                       = "eks-ai-node-role"
 
   # EKS Auto Mode - built in node pools
   cluster_compute_config = {
     enabled    = true
     node_pools = ["general-purpose"]
   }
-}
-
-# Custom node-pools
-resource "null_resource" "kubectl_apply" {
-  provisioner "local-exec" {
-    # update kubeconfig and apply node class and node pool manifests
-    interpreter = ["bash", "-c"]
-    command     = <<EOT
-      aws eks update-kubeconfig --name ${var.eks_cluster_name} --region ${var.aws_region}
-      echo "${local.node_class_yml}" | kubectl apply -f -
-      echo "${local.node_pool_yml}" | kubectl apply -f -
-    EOT
-  }
-
-  depends_on = [module.eks]
 }
 
 # EKS Access Policy Association
@@ -54,4 +40,21 @@ resource "aws_eks_access_policy_association" "this" {
   access_scope {
     type = "cluster"
   }
+
+  depends_on = [module.eks]
+}
+
+output "node_iam_role_arn" {
+  value       = module.eks.node_iam_role_arn
+  description = "ARN of the EKS node IAM role"
+}
+
+output "subnet_ids" {
+  value       = data.aws_subnets.subnets.ids
+  description = "List of subnet IDs in the default VPC"
+}
+
+output "security_group_ids" {
+  value       = module.eks.cluster_security_group_id
+  description = "Security group ID for the EKS cluster"
 }
