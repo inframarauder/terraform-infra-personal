@@ -1,5 +1,5 @@
 # Create an EKS cluster 
-module "ai_eks" {
+module "ai_eks_cluster" {
   source = "terraform-aws-modules/eks/aws"
 
   cluster_name                             = var.eks_cluster_name
