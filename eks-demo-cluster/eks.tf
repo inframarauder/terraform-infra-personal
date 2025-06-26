@@ -16,11 +16,15 @@ module "eks_cluster" {
     coredns = {}
   }
 
-  eks_managed_node_group_defaults = {
-    instance_types = var.node_instance_types
-    min_size       = var.node_group_min_size
-    desired_size   = var.node_group_desired_size
-    max_size       = var.node_group_max_size
+  eks_managed_node_groups = {
+    example = {
+
+      instance_types = var.node_instance_types
+
+      min_size     = var.node_group_min_size
+      max_size     = var.node_group_max_size
+      desired_size = var.node_group_desired_size
+    }
   }
 
   depends_on = [

@@ -8,7 +8,7 @@ Generates an ACM certificate for a domain whose DNS records are managed on Cloud
 # ec2-tailscale-exit-node
 Deploys an EC2 instance as a [tailscale exit-node](https://tailscale.com/kb/1103/exit-nodes). Used to create my personal VPN server.
 
-# ai-infra
+# eks-demo-cluster
 Creates - 
  - a VPC with the required tags for ALB Ingress Controller to work
- - an EKS cluster with CPU and GPU node groups and required taints
+ - an EKS cluster with some default nodes
